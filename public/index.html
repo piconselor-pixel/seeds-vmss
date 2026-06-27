@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Seeds FinCap – Visitor Check-in</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #2563EB;
+      --blue-dark: #1D4ED8;
+      --green: #059669;
+      --green-light: #D1FAE5;
+      --red: #DC2626;
+      --red-light: #FEE2E2;
+      --amber: #D97706;
+      --amber-light: #FEF3C7;
+      --gray-50: #F9FAFB;
+      --gray-100: #F3F4F6;
+      --gray-200: #E5E7EB;
+      --gray-400: #9CA3AF;
+      --gray-500: #6B7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+      min-height: 100vh;
+      padding: 24px 16px;
+      color: var(--gray-900);
+    }
+    .page-wrap { max-width: 760px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .site-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .site-header img { height: 48px; margin-bottom: 10px; }
+    .site-header h1 { color: #fff; font-size: 1.6rem; font-weight: 700; letter-spacing: -.3px; }
+    .site-header p { color: rgba(255,255,255,.7); font-size: .9rem; margin-top: 4px; }
+
+    /* ── Top-level mode tabs (Check In / Check Out) ── */
+    .mode-tabs {
+      display: flex;
+      background: rgba(255,255,255,.15);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: rgba(255,255,255,.75);
+      background: transparent;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .mode-tab.active {
+      background: #fff;
+      color: var(--blue-dark);
+      box-shadow: var(--shadow);
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    /* ── Step tabs inside card ── */
+    .step-nav {
+      display: flex;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-50);
+    }
+    .step-btn {
+      flex: 1;
+      padding: 18px 12px;
+      border: none;
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--gray-400);
+      cursor: pointer;
+      position: relative;
+      transition: color .2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-btn .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem;
+      font-weight: 700;
+      transition: all .2s;
+    }
+    .step-btn.active { color: var(--blue); }
+    .step-btn.active .step-num {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    .step-btn.done { color: var(--green); }
+    .step-btn.done .step-num {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .step-btn::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--blue);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .step-btn.active::after { opacity: 1; }
+
+    /* ── Step panels ── */
+    .step-panel { display: none; padding: 32px; }
+    .step-panel.active { display: block; }
+    .step-title { font-size: 1.2rem; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
+    .step-subtitle { font-size: .88rem; color: var(--gray-500); margin-bottom: 28px; }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    label span.req { color: var(--red); }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem;
+      color: var(--gray-900);
+      background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    }
+    input.invalid, select.invalid { border-color: var(--red); }
+    input[readonly] { background: var(--gray-50); color: var(--gray-500); cursor: default; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,.35); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover:not(:disabled) { background: #047857; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,.35); }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--gray-200);
+      color: var(--gray-700);
+    }
+    .btn-outline:hover { background: var(--gray-50); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .btn-full { width: 100%; }
+    .btn-lg { padding: 16px 32px; font-size: 1rem; }
+
+    .nav-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 32px;
+      gap: 12px;
+    }
+
+    /* ── Camera / Photo ── */
+    .camera-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      max-height: 340px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000;
+      margin-bottom: 16px;
+    }
+    #video, #photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    #photo { display: none; }
+    .camera-overlay {
+      position: absolute;
+      inset: 0;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 14px;
+      pointer-events: none;
+    }
+    .demo-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      max-height: 340px;
+      background: var(--gray-100);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--gray-400);
+      margin-bottom: 16px;
+    }
+    .demo-placeholder i { font-size: 56px; }
+    .demo-placeholder p { font-size: .9rem; }
+    .camera-btns { display: flex; gap: 12px; justify-content: center; }
+
+    .photo-hint {
+      background: var(--amber-light);
+      border: 1px solid #FCD34D;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: .83rem;
+      color: #92400E;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Success screen ── */
+    .success-screen {
+      text-align: center;
+      padding: 40px 32px;
+    }
+    .success-icon {
+      width: 80px; height: 80px;
+      background: var(--green-light);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 36px;
+      color: var(--green);
+    }
+    .success-screen h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+    .success-screen p { color: var(--gray-500); margin-bottom: 24px; }
+    .qr-box {
+      background: #fff;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 16px;
+      padding: 20px;
+      display: inline-block;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .qr-box img { width: 180px; height: 180px; display: block; }
+    .visitor-badge {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: left;
+      margin-bottom: 24px;
+      font-size: .88rem;
+    }
+    .visitor-badge .row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--gray-100); }
+    .visitor-badge .row:last-child { border-bottom: none; }
+    .visitor-badge .lbl { width: 120px; color: var(--gray-500); font-weight: 500; flex-shrink: 0; }
+    .visitor-badge .val { color: var(--gray-900); font-weight: 600; }
+    .email-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: .82rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .email-tag.sent { background: var(--green-light); color: #065F46; }
+    .email-tag.failed { background: var(--red-light); color: #991B1B; }
+    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-whatsapp { background: #25D366; color: #fff; }
+    .btn-whatsapp:hover { background: #128C7E; }
+
+    /* ── Alert / Status ── */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 16px;
+      border-radius: 10px;
+      font-size: .88rem;
+      font-weight: 500;
+      margin-top: 16px;
+    }
+    .alert.success { background: var(--green-light); color: #065F46; }
+    .alert.error { background: var(--red-light); color: #991B1B; }
+    .alert.info { background: #EFF6FF; color: #1E40AF; }
+    .alert i { margin-top: 1px; flex-shrink: 0; }
+
+    /* ── Checkout panel ── */
+    .checkout-search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .checkout-search-bar input { flex: 1; }
+    .visitor-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      transition: border-color .2s;
+    }
+    .visitor-row:hover { border-color: var(--blue); }
+    .visitor-row-info h4 { font-size: .95rem; font-weight: 600; margin-bottom: 4px; }
+    .visitor-row-info p { font-size: .82rem; color: var(--gray-500); margin: 2px 0; }
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--gray-400); }
+    .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
+    .empty-state p { font-size: .9rem; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .fa-spin { animation: spin .8s linear infinite; }
+
+    /* ── Demo badge ── */
+    .demo-badge {
+      position: fixed; top: 12px; right: 12px;
+      background: var(--amber);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 700;
+      display: none;
+      z-index: 999;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 560px) {
+      body { padding: 16px 10px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+      .step-panel { padding: 24px 18px; }
+      .nav-actions { flex-direction: column-reverse; }
+      .nav-actions .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="demo-badge" id="demoBadge"><i class="fas fa-code"></i> DEMO MODE</div>
+
+<div class="page-wrap">
+
+  <!-- Header -->
+  <div class="site-header">
+    <img src="https://cdn.prod.website-files.com/65b65b84c3edfa5897cdfb0b/65d10f4087845b6e392e1dcd_seeds.png" alt="Seeds FinCap" onerror="this.style.display='none'">
+    <h1>Visitor Management System</h1>
+    <p>Seeds Fincap Pvt. Ltd. — Secure Digital Reception</p>
+  </div>
+
+  <!-- Top-level mode tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="modeCheckin" onclick="switchMode('checkin')">
+      <i class="fas fa-sign-in-alt"></i> Check In
+    </button>
+    <button class="mode-tab" id="modeCheckout" onclick="switchMode('checkout')">
+      <i class="fas fa-sign-out-alt"></i> Check Out
+    </button>
+  </div>
+
+  <!-- ═══ CHECK-IN CARD ═══ -->
+  <div class="card" id="checkinCard">
+
+    <!-- Step navigation -->
+    <div class="step-nav">
+      <button class="step-btn active" id="stepBtn1" onclick="goToStep(1)">
+        <span class="step-num">1</span>
+        <span>Details</span>
+      </button>
+      <button class="step-btn" id="stepBtn2">
+        <span class="step-num">2</span>
+        <span>Photo</span>
+      </button>
+      <button class="step-btn" id="stepBtn3">
+        <span class="step-num">3</span>
+        <span>Done</span>
+      </button>
+    </div>
+
+    <!-- ── Step 1: Details ── -->
+    <div class="step-panel active" id="panel1">
+      <div class="step-title">Visitor Details</div>
+      <div class="step-subtitle">Fill in the information below to begin registration</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="visitorName"><i class="fas fa-user"></i> Full Name <span class="req">*</span></label>
+          <input type="text" id="visitorName" placeholder="e.g. Rahul Sharma" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="mobile"><i class="fas fa-mobile-alt"></i> Mobile Number</label>
+          <input type="tel" id="mobile" placeholder="9876543210" maxlength="10" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="hostEmployee"><i class="fas fa-user-tie"></i> Meeting With <span class="req">*</span></label>
+          <select id="hostEmployee">
+            <option value="">— Select Employee —</option>
+            <option value="Subhash Acharya">Subhash Acharya</option>
+            <option value="Avishek Sarkar">Avishek Sarkar</option>
+            <option value="Manmath Sahoo">Manmath Sahoo</option>
+            <option value="Abhishek Gautam">Abhishek Gautam</option>
+            <option value="Pritesh Kumar">Pritesh Kumar</option>
+            <option value="Punit Tiwari">Punit Tiwari</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="hostEmail"><i class="fas fa-envelope"></i> Host Email</label>
+          <input type="email" id="hostEmail" readonly placeholder="Auto-filled on employee select">
+        </div>
+        <div class="form-group">
+          <label for="purpose"><i class="fas fa-clipboard-list"></i> Purpose <span class="req">*</span></label>
+          <select id="purpose">
+            <option value="">— Select Purpose —</option>
+            <option value="Meeting">Meeting</option>
+            <option value="Documentation">Documentation</option>
+            <option value="Interview">Interview</option>
+            <option value="Delivery">Delivery</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="additionalNotes"><i class="fas fa-sticky-note"></i> Additional Notes</label>
+          <input type="text" id="additionalNotes" placeholder="Optional">
+        </div>
+      </div>
+
+      <div id="step1Alert"></div>
+
+      <div class="nav-actions">
+        <span></span>
+        <button class="btn btn-primary btn-lg" onclick="validateStep1()">
+          Next: Capture Photo <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Step 2: Photo ── -->
+    <div class="step-panel" id="panel2">
+      <div class="step-title">Capture Visitor Photo</div>
+      <div class="step-subtitle">Take a clear photo for identity verification</div>
+
+      <div class="photo-hint">
+        <i class="fas fa-lightbulb"></i>
+        Ensure good lighting and the visitor is looking directly at the camera.
+      </div>
+
+      <!-- Camera live view -->
+      <div id="cameraLiveWrap" style="display:none;">
+        <div class="camera-wrap">
+          <video id="video" autoplay muted playsinline></video>
+          <div class="camera-overlay"></div>
+        </div>
+        <div class="camera-btns">
+          <button class="btn btn-primary" onclick="capturePhoto()">
+            <i class="fas fa-camera"></i> Capture Photo
+          </button>
+        </div>
+      </div>
+
+      <!-- Captured photo preview -->
+      <div id="capturedWrap" style="display:none;">
+        <div class="camera-wrap">
+          <img id="photo" alt="Captured visitor photo">
+        </div>
+        <div class="camera-btns">
+          <button class="btn btn-outline" onclick="retakePhoto()">
+            <i class="fas fa-redo"></i> Retake
+          </button>
+        </div>
+      </div>
+
+      <!-- Demo placeholder -->
+      <div id="demoPlaceholder" style="display:none;">
+        <div class="demo-placeholder">
+          <i class="fas fa-user"></i>
+          <p>Demo mode — no camera available</p>
+        </div>
+        <div class="camera-btns">
+          <button class="btn btn-primary" onclick="demoCapturePhoto()">
+            <i class="fas fa-camera"></i> Use Demo Photo
+          </button>
+        </div>
+      </div>
+
+      <!-- Camera denied / not found -->
+      <div id="cameraErrorWrap" style="display:none;">
+        <div class="demo-placeholder">
+          <i class="fas fa-camera-slash"></i>
+          <p>Camera access was denied or unavailable</p>
+        </div>
+        <div class="camera-btns">
+          <button class="btn btn-outline" onclick="requestCamera()">
+            <i class="fas fa-redo"></i> Try Again
+          </button>
+          <button class="btn btn-primary" onclick="useDemoMode()">
+            <i class="fas fa-user"></i> Use Demo Photo
+          </button>
+        </div>
+      </div>
+
+      <div id="step2Alert"></div>
+      <canvas id="canvas" style="display:none;"></canvas>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" onclick="goToStep(1)">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <button class="btn btn-green btn-lg" id="submitBtn" onclick="submitVisitor()" disabled>
+          <i class="fas fa-check-circle"></i> Check In Visitor
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Success ── -->
+    <div class="step-panel" id="panel3">
+      <div class="success-screen">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <h2>Check-in Successful!</h2>
+        <p>Visitor has been registered and host notified.</p>
+
+        <div id="emailTag"></div>
+
+        <div class="qr-box">
+          <img id="qrCode" src="" alt="Visitor QR Code">
+        </div>
+
+        <div class="visitor-badge" id="visitorBadge"></div>
+
+        <div class="success-actions">
+          <a id="whatsappLink" class="btn btn-whatsapp" href="#" target="_blank">
+            <i class="fab fa-whatsapp"></i> Send via WhatsApp
+          </a>
+          <button class="btn btn-primary" onclick="newVisitor()">
+            <i class="fas fa-user-plus"></i> New Visitor
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /checkinCard -->
+
+  <!-- ═══ CHECK-OUT CARD ═══ -->
+  <div class="card" id="checkoutCard" style="display:none;">
+    <div class="step-panel active">
+      <div class="step-title">Visitor Check-out</div>
+      <div class="step-subtitle">Select a checked-in visitor to complete their check-out</div>
+
+      <div class="checkout-search-bar">
+        <input type="text" id="checkoutSearch" placeholder="Search by name, mobile or host…">
+        <button class="btn btn-primary" onclick="loadActiveVisitors()"><i class="fas fa-search"></i></button>
+        <button class="btn btn-outline" onclick="loadActiveVisitors(true)" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+      </div>
+
+      <div id="checkoutAlert"></div>
+      <div id="activeVisitorsList"></div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+  /* ── Config ── */
+  const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? 'http://localhost:3032' : location.origin;
+
+  const EMPLOYEE_EMAILS = {
+    'Subhash Acharya':  'subhash.acharya@seedsfincap.com',
+    'Avishek Sarkar':   'avishek.sarkar@seedsfincap.com',
+    'Manmath Sahoo':    'manmath.sahoo@seedsfincap.com',
+    'Abhishek Gautam':  'abhishek.kumar@seedsfincap.com',
+    'Pritesh Kumar':    'pritesh.kumar@seedsfincap.com',
+    'Punit Tiwari':     'punit.tiwari@seedsfincap.com'
+  };
+
+  /* ── State ── */
+  let isDemoMode = false;
+  let photoBase64 = null;
+  let cameraStream = null;
+  let currentStep = 1;
+  let lastResult = null;
+
+  /* ── DOM ready ── */
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('hostEmployee').addEventListener('change', function () {
+      document.getElementById('hostEmail').value = EMPLOYEE_EMAILS[this.value] || '';
+    });
+    document.getElementById('checkoutSearch').addEventListener('keypress', e => {
+      if (e.key === 'Enter') loadActiveVisitors();
+    });
+  });
+
+  /* ══════════════════════════════════════
+     MODE SWITCH
+  ══════════════════════════════════════ */
+  function switchMode(mode) {
+    const isCI = mode === 'checkin';
+    document.getElementById('modeCheckin').classList.toggle('active', isCI);
+    document.getElementById('modeCheckout').classList.toggle('active', !isCI);
+    document.getElementById('checkinCard').style.display = isCI ? '' : 'none';
+    document.getElementById('checkoutCard').style.display = isCI ? 'none' : '';
+    if (!isCI) loadActiveVisitors(true);
+  }
+
+  /* ══════════════════════════════════════
+     STEP NAVIGATION
+  ══════════════════════════════════════ */
+  function goToStep(n) {
+    // Only allow going back or to done step if already there
+    if (n > currentStep && n !== currentStep + 1) return;
+    if (n < 1 || n > 3) return;
+
+    [1, 2, 3].forEach(i => {
+      document.getElementById(`panel${i}`).classList.toggle('active', i === n);
+      const btn = document.getElementById(`stepBtn${i}`);
+      btn.className = 'step-btn' +
+        (i === n ? ' active' : '') +
+        (i < n ? ' done' : '');
+    });
+    currentStep = n;
+
+    if (n === 2) initCameraStep();
+  }
+
+  /* ══════════════════════════════════════
+     STEP 1 – VALIDATION
+  ══════════════════════════════════════ */
+  function validateStep1() {
+    clearAlert('step1Alert');
+    const fields = ['visitorName', 'hostEmployee', 'hostEmail', 'purpose'];
+    let ok = true;
+    fields.forEach(f => {
+      const el = document.getElementById(f);
+      if (!el.value.trim()) {
+        el.classList.add('invalid');
+        ok = false;
+      } else {
+        el.classList.remove('invalid');
+      }
+    });
+
+    // Remove invalid class on input
+    fields.forEach(f => {
+      document.getElementById(f).addEventListener('input', () =>
+        document.getElementById(f).classList.remove('invalid'), { once: true });
+    });
+
+    if (!ok) {
+      showAlert('step1Alert', 'Please fill in all required fields before continuing.', 'error');
+      return;
+    }
+    goToStep(2);
+  }
+
+  /* ══════════════════════════════════════
+     STEP 2 – CAMERA
+  ══════════════════════════════════════ */
+  function initCameraStep() {
+    // If already have a photo (retake scenario), show capture preview
+    if (photoBase64 && !isDemoMode) return; // already captured
+    if (isDemoMode) {
+      showDemoUI();
+    } else {
+      requestCamera();
+    }
+  }
+
+  async function requestCamera() {
+    hideCameraUIs();
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      isDemoMode = false;
+      document.getElementById('demoBadge').style.display = 'none';
+      const video = document.getElementById('video');
+      video.srcObject = cameraStream;
+      document.getElementById('cameraLiveWrap').style.display = '';
+    } catch (err) {
+      console.warn('Camera error:', err);
+      document.getElementById('cameraErrorWrap').style.display = '';
+    }
+  }
+
+  function useDemoMode() {
+    isDemoMode = true;
+    document.getElementById('demoBadge').style.display = 'flex';
+    showDemoUI();
+  }
+
+  function showDemoUI() {
+    hideCameraUIs();
+    document.getElementById('demoPlaceholder').style.display = '';
+  }
+
+  function hideCameraUIs() {
+    ['cameraLiveWrap', 'capturedWrap', 'demoPlaceholder', 'cameraErrorWrap'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  }
+
+  function capturePhoto() {
+    const video = document.getElementById('video');
+    if (!video.videoWidth) {
+      showAlert('step2Alert', 'Camera is still loading — please wait a moment.', 'error');
+      return;
+    }
+    const canvas = document.getElementById('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+
+    const dataURL = canvas.toDataURL('image/jpeg', 0.82);
+    photoBase64 = dataURL.split(',')[1];
+
+    document.getElementById('photo').src = dataURL;
+    hideCameraUIs();
+    document.getElementById('capturedWrap').style.display = '';
+    document.getElementById('photo').style.display = 'block';
+    document.getElementById('submitBtn').disabled = false;
+    clearAlert('step2Alert');
+
+    // Stop camera
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  }
+
+  function retakePhoto() {
+    photoBase64 = null;
+    document.getElementById('submitBtn').disabled = true;
+    hideCameraUIs();
+    if (isDemoMode) {
+      showDemoUI();
+    } else {
+      requestCamera();
+    }
+  }
+
+  function demoCapturePhoto() {
+    // Generate SVG placeholder as base64
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#E5E7EB"/><circle cx="200" cy="110" r="60" fill="#9CA3AF"/><ellipse cx="200" cy="240" rx="80" ry="50" fill="#9CA3AF"/><text x="200" y="285" font-family="Arial" font-size="14" fill="#6B7280" text-anchor="middle">Demo Photo</text></svg>`;
+    const b64 = btoa(svg);
+    photoBase64 = b64;
+
+    const dataURL = 'data:image/svg+xml;base64,' + b64;
+    document.getElementById('photo').src = dataURL;
+    hideCameraUIs();
+    document.getElementById('capturedWrap').style.display = '';
+    document.getElementById('photo').style.display = 'block';
+    document.getElementById('submitBtn').disabled = false;
+    clearAlert('step2Alert');
+    showAlert('step2Alert', 'Demo photo captured. Proceed to check in.', 'info');
+  }
+
+  /* ══════════════════════════════════════
+     SUBMIT
+  ══════════════════════════════════════ */
+  async function submitVisitor() {
+    if (!photoBase64) {
+      showAlert('step2Alert', 'Please capture a photo before checking in.', 'error');
+      return;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+    const data = {
+      visitor_name:    document.getElementById('visitorName').value.trim(),
+      mobile:          document.getElementById('mobile').value.trim(),
+      host_employee:   document.getElementById('hostEmployee').value.trim(),
+      host_email:      document.getElementById('hostEmail').value.trim(),
+      purpose:         document.getElementById('purpose').value.trim(),
+      additional_notes: document.getElementById('additionalNotes').value.trim(),
+      photo_base64:    photoBase64,
+      checkin_time:    new Date().toISOString()
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/visitors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      let result;
+      try { result = await res.json(); } catch { throw new Error(`Server error (HTTP ${res.status})`); }
+
+      if (!res.ok || !result.success) {
+        showAlert('step2Alert', result.error || `Check-in failed (HTTP ${res.status})`, 'error');
+        return;
+      }
+
+      lastResult = result;
+      showSuccessStep(data, result);
+
+    } catch (err) {
+      showAlert('step2Alert', 'Network error — please check your connection and try again.', 'error');
+      console.error(err);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Check In Visitor';
+    }
+  }
+
+  /* ── Success screen ── */
+  function showSuccessStep(data, result) {
+    goToStep(3);
+
+    // QR Code
+    document.getElementById('qrCode').src = result.qrCode || '';
+
+    // Email tag
+    const tag = document.getElementById('emailTag');
+    if (result.emailSent) {
+      tag.innerHTML = `<span class="email-tag sent"><i class="fas fa-check-circle"></i> Email sent to ${data.host_email}</span>`;
+    } else {
+      tag.innerHTML = `<span class="email-tag failed"><i class="fas fa-exclamation-triangle"></i> Email failed: ${result.emailError || 'unknown error'}</span>`;
+    }
+
+    // Badge
+    const vid = result.visitorId || result.visitor?.visitorId || result.id || '—';
+    const checkinIST = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
+    document.getElementById('visitorBadge').innerHTML = `
+      <div class="row"><span class="lbl">Name</span><span class="val">${esc(data.visitor_name)}</span></div>
+      <div class="row"><span class="lbl">Host</span><span class="val">${esc(data.host_employee)}</span></div>
+      <div class="row"><span class="lbl">Purpose</span><span class="val">${esc(data.purpose)}</span></div>
+      <div class="row"><span class="lbl">Check-in (IST)</span><span class="val">${checkinIST}</span></div>
+      <div class="row"><span class="lbl">Visitor ID</span><span class="val">${esc(vid)}</span></div>
+    `;
+
+    // WhatsApp
+    const mobile = (data.mobile || '').replace(/\D/g, '');
+    const msg = `🛡️ Seeds FinCap Visitor Pass\n\nVisitor: ${data.visitor_name}\nMeeting: ${data.host_employee}\nPurpose: ${data.purpose}\nCheck-in: ${checkinIST} IST\nID: ${vid}\n\nPlease show this at reception.`;
+    const waLink = mobile.length >= 10
+      ? `https://wa.me/91${mobile}?text=${encodeURIComponent(msg)}`
+      : '#';
+    document.getElementById('whatsappLink').href = waLink;
+    if (!mobile.length) document.getElementById('whatsappLink').style.opacity = '.4';
+  }
+
+  function newVisitor() {
+    ['visitorName','mobile','additionalNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('hostEmployee').value = '';
+    document.getElementById('hostEmail').value = '';
+    document.getElementById('purpose').value = '';
+    photoBase64 = null;
+    isDemoMode = false;
+    document.getElementById('demoBadge').style.display = 'none';
+    document.getElementById('submitBtn').disabled = true;
+    clearAlert('step1Alert');
+    clearAlert('step2Alert');
+
+    // Reset step nav visuals
+    [1,2,3].forEach(i => {
+      document.getElementById(`panel${i}`).classList.toggle('active', i === 1);
+      document.getElementById(`stepBtn${i}`).className = 'step-btn' + (i === 1 ? ' active' : '');
+    });
+    currentStep = 1;
+    hideCameraUIs();
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  }
+
+  /* ══════════════════════════════════════
+     CHECKOUT
+  ══════════════════════════════════════ */
+  async function loadActiveVisitors(clearSearch = false) {
+    if (clearSearch) document.getElementById('checkoutSearch').value = '';
+    const search = document.getElementById('checkoutSearch').value.trim();
+    const listEl = document.getElementById('activeVisitorsList');
+    clearAlert('checkoutAlert');
+    listEl.innerHTML = `<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading…</p></div>`;
+
+    try {
+      const params = search ? `?search=${encodeURIComponent(search)}` : '';
+      const res = await fetch(`${API_BASE}/api/visitors/active${params}`);
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load visitors');
+
+      if (!data.visitors.length) {
+        listEl.innerHTML = `<div class="empty-state"><i class="fas fa-user-check"></i><p>${search ? 'No matches found.' : 'No active visitors right now.'}</p></div>`;
+        return;
+      }
+
+      listEl.innerHTML = data.visitors.map(v => `
+        <div class="visitor-row" id="vrow-${v.id}">
+          <div class="visitor-row-info">
+            <h4>${esc(v.visitor_name)}</h4>
+            <p><i class="fas fa-clock" style="width:14px;"></i> ${v.checkin_time_ist || fmtIST(v.checkin_time)}</p>
+            <p><i class="fas fa-user-tie" style="width:14px;"></i> ${esc(v.host_employee || 'N/A')}</p>
+            ${v.mobile ? `<p><i class="fas fa-mobile-alt" style="width:14px;"></i> ${esc(v.mobile)}</p>` : ''}
+            <p><i class="fas fa-clipboard-list" style="width:14px;"></i> ${esc(v.purpose || '')}</p>
+          </div>
+          <button class="btn btn-green" id="cobtn-${v.id}" onclick="checkoutVisitor(${v.id}, '${esc(v.visitor_name)}')">
+            <i class="fas fa-sign-out-alt"></i> Check Out
+          </button>
+        </div>
+      `).join('');
+    } catch (err) {
+      listEl.innerHTML = '';
+      showAlert('checkoutAlert', err.message, 'error');
+    }
+  }
+
+  async function checkoutVisitor(id, name) {
+    if (!confirm(`Check out ${name}?`)) return;
+    const btn = document.getElementById(`cobtn-${id}`);
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/visitors/${id}/checkout/public`, {
+        method: 'PUT', headers: { 'Accept': 'application/json' }
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Check-out failed');
+
+      showAlert('checkoutAlert', `${name} checked out successfully.`, 'success');
+      const row = document.getElementById(`vrow-${id}`);
+      if (row) row.remove();
+      const listEl = document.getElementById('activeVisitorsList');
+      if (!listEl.querySelector('.visitor-row')) {
+        listEl.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i><p>All visitors checked out.</p></div>`;
+      }
+    } catch (err) {
+      showAlert('checkoutAlert', err.message, 'error');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Check Out'; }
+    }
+  }
+
+  /* ══════════════════════════════════════
+     HELPERS
+  ══════════════════════════════════════ */
+  function showAlert(containerId, msg, type) {
+    const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+    document.getElementById(containerId).innerHTML =
+      `<div class="alert ${type}"><i class="fas ${icons[type]}"></i><span>${msg}</span></div>`;
+  }
+  function clearAlert(id) { document.getElementById(id).innerHTML = ''; }
+  function esc(s) {
+    const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+  }
+  function fmtIST(d) {
+    return new Date(d).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata', hour12: true,
+      hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short'
+    });
+  }
+</script>
+
+</body>
+</html>
